@@ -4,10 +4,11 @@ import sqlite3
 import os
 from models import Product
 
-# Путь к базе данных
+# ✅ Путь к БД: сначала databases/, потом корень
 current_dir = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(current_dir, 'db_variant_7.db')
-
+DB_PATH = os.path.join(current_dir, 'databases', 'db_variant_7.db')
+if not os.path.exists(DB_PATH):
+    DB_PATH = os.path.join(current_dir, 'db_variant_7.db')
 if not os.path.exists(DB_PATH):
     DB_PATH = os.path.join(os.path.dirname(current_dir), 'db_variant_7.db')
 
@@ -17,7 +18,7 @@ def get_connection():
     if not os.path.exists(DB_PATH):
         raise FileNotFoundError(
             f"База данных не найдена по пути: {DB_PATH}. "
-            f"Проверьте, лежит ли файл db_variant_7.db в папке проекта!"
+            f"Проверьте, лежит ли файл db_variant_7.db в папке databases/ или проекта!"
         )
     return sqlite3.connect(DB_PATH)
 
@@ -26,7 +27,6 @@ def get_all_products():
     """Загружает все товары из БД в список объектов Product."""
     conn = get_connection()
     cur = conn.cursor()
-
     query = """
         SELECT id, категория, наименование, срок_годности, цена, количество, фото
         FROM Товар
@@ -55,7 +55,6 @@ def get_products_by_category(category_name):
     """Возвращает товары конкретной категории."""
     conn = get_connection()
     cur = conn.cursor()
-
     query = """
         SELECT id, категория, наименование, срок_годности, цена, количество, фото
         FROM Товар
@@ -83,7 +82,6 @@ def get_products_low_stock(threshold=3):
     """Возвращает товары с количеством ниже порога."""
     conn = get_connection()
     cur = conn.cursor()
-
     query = """
         SELECT id, категория, наименование, срок_годности, цена, количество, фото
         FROM Товар
@@ -108,7 +106,7 @@ def get_products_low_stock(threshold=3):
 
 
 def print_products(products):
-    """Выводит информацию о товарах (Задание 5.1)."""
+    """Выводит информацию о товарах."""
     print(f"\nВсего товаров: {len(products)}\n")
     for p in products:
         print(p.info())
@@ -116,7 +114,7 @@ def print_products(products):
 
 
 def print_catalog_with_highlight(products):
-    """Выводит каталог с подсветкой для товаров ≤3 (Задание 6.1)."""
+    """Выводит каталог с подсветкой для товаров ≤3."""
     print(f"\n{'=' * 70}")
     print(f"КАТАЛОГ ({len(products)} товаров)")
     print("=" * 70)
@@ -130,8 +128,10 @@ if __name__ == "__main__":
     print("1. Все товары:")
     print_catalog_with_highlight(get_all_products())
 
-    print("\n2. Товары категории «Кроссовки»:")
-    print_catalog_with_highlight(get_products_by_category("Кроссовки"))
+    # ✅ Реальная категория из твоей БД
+    print("\n2. Товары категории «Молочное»:")
+    print_catalog_with_highlight(get_products_by_category("Молочное"))
 
-    print("\n3. Товары с низким остатком (≤3):")
-    print_catalog_with_highlight(get_products_low_stock())
+    # ✅ Порог 20, чтобы увидеть хоть что-то (у тебя минимум 10 шт.)
+    print("\n3. Товары с низким остатком (≤20):")
+    print_catalog_with_highlight(get_products_low_stock(20))

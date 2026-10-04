@@ -1,3 +1,4 @@
+
 catalog = [
     {"name": "Кроссовки", "price": 8500, "qty": 3},
     {"name": "Ботинки", "price": 15000, "qty": 1},
@@ -7,7 +8,8 @@ catalog = [
 ]
 
 
-sorted_catalog = sorted(catalog, key=lambda x: x["qty"] <= 5)
+sorted_catalog = sorted(catalog, key=lambda x: x["qty"])
+
 
 print("Каталог с индикатором:")
 for i, item in enumerate(sorted_catalog, start=1):

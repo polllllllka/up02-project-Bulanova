@@ -4,7 +4,7 @@ import sqlite3
 import os
 from models import Product
 
-# ✅ Путь к БД: сначала databases/, потом корень
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(current_dir, 'databases', 'db_variant_7.db')
 if not os.path.exists(DB_PATH):
@@ -128,10 +128,10 @@ if __name__ == "__main__":
     print("1. Все товары:")
     print_catalog_with_highlight(get_all_products())
 
-    # ✅ Реальная категория из твоей БД
+    
     print("\n2. Товары категории «Молочное»:")
     print_catalog_with_highlight(get_products_by_category("Молочное"))
 
-    # ✅ Порог 20, чтобы увидеть хоть что-то (у тебя минимум 10 шт.)
+    
     print("\n3. Товары с низким остатком (≤20):")
     print_catalog_with_highlight(get_products_low_stock(20))

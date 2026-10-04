@@ -6,11 +6,10 @@ catalog = [
     {"name": "Кеды", "price": 6000, "qty": 2},
 ]
 
-# Сортировка: сначала «много» (qty > 5), потом «мало»
+
 sorted_catalog = sorted(catalog, key=lambda x: x["qty"] <= 5)
 
 print("Каталог с индикатором:")
 for i, item in enumerate(sorted_catalog, start=1):
     indicator = "много" if item["qty"] > 5 else "мало"
     print(f"{i}. {item['name']:<10} — {item['qty']} шт. → {indicator}")
-

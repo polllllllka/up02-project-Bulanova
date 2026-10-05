@@ -1,4 +1,5 @@
 """main_catalog.py - Главное окно приложения с каталогом."""
+import os
 import tkinter as tk
 from tkinter import ttk
 from config import APP_TITLE, FONT_FAMILY, COLOR_HEADER
@@ -16,9 +17,24 @@ class CatalogWindow:
         self.load_products()
 
     def build_ui(self):
-        
+
         header = tk.Frame(self.root, bg=COLOR_HEADER)
         header.pack(fill="x")
+
+        # Логотип слева
+        logo_path = os.path.join("resources", "logo.png")
+        if os.path.exists(logo_path):
+            try:
+                from PIL import Image, ImageTk
+                logo_img = Image.open(logo_path).resize((50, 50))
+                logo_photo = ImageTk.PhotoImage(logo_img)
+                logo_label = tk.Label(header, image=logo_photo, bg=COLOR_HEADER)
+                logo_label.image = logo_photo   # сохраняем ссылку
+                logo_label.pack(side="left", padx=10)
+            except Exception:
+                pass
+
+        # Заголовок
         tk.Label(header, text="КАТАЛОГ ТОВАРОВ",
                  font=(FONT_FAMILY, 16, "bold"),
                  bg=COLOR_HEADER).pack(pady=15)

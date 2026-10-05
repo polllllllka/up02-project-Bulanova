@@ -1,0 +1,31 @@
+* b147cc4 (HEAD -> main, origin/main) important.txt has been added; the log and tmp are ignored
+* 562cbfa A .gitignore file with rules for Python has been added
+*   d12f0e0 conflict resolution README.md
+|\
+| * a6911cf Update README.md
+* | 4013a7a Local change README
+|/
+*   c2071ba Merge pull request #2 from polllllllka/feature/homework-8
+|\
+| * ddca8de (origin/feature/homework-8) Add homework_info.txt
+|/
+*   48eb4f5 The conflict with GitHub has been resolved
+|\
+| * d27ff0e Update README.md
+* | d2a8552 Local README modification
+|/
+*   dcdfb3e Merge pull request #1 from polllllllka/feature/remote-test
+|\
+| * 87ed080 (origin/feature/remote-test) A file has been added to the feature/remote-test branch
+|/
+* 83d0fa5 Update README.md
+* a63c2b6 The is_available method has been added
+*   13e5cda : работа с ветками и конфликтами
+|\
+| * 092f386 зменение README в конфликт-2
+* | ef64bdf зменение README в main
+|/
+* 1ac2a3a обавлен класс Order с методом order_info в ветке feature/orders
+*   14e7134 азрешён конфликт: скидка 25%
+|\
+| * 840a448 зменение скидки в ветке conflict-test

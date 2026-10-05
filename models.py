@@ -53,6 +53,12 @@ class Product:
         )
     
 
+    def is_available(self):
+        """Товар доступен для заказа?"""
+        return self.quantity > 0
+
+    
+
 
 class Order:
     """Класс Заказ."""

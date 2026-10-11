@@ -10,12 +10,12 @@ if not os.path.exists(DB_PATH):
 
 
 def get_connection():
-  
+ 
     return sqlite3.connect(DB_PATH)
 
 
 def add_order_to_db(client, date=None):
-    
+   
     if date is None:
         date = datetime.now().strftime("%Y-%m-%d")
     conn = get_connection()
@@ -31,7 +31,7 @@ def add_order_to_db(client, date=None):
 
 
 def add_order_item(order_id, product_id, size, quantity, price):
- 
+  
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
@@ -47,10 +47,9 @@ def add_order_item(order_id, product_id, size, quantity, price):
 
 
 def create_order(client, items):
-    
+   
     conn = get_connection()
     cur = conn.cursor()
-
     try:
         date = datetime.now().strftime("%Y-%m-%d")
         cur.execute(
@@ -79,12 +78,10 @@ def create_order(client, items):
 
         conn.commit()
         return order_id
-
     except Exception as e:
         conn.rollback()
         print(f"Ошибка создания заказа: {e}")
         return None
-
     finally:
         conn.close()
 
@@ -104,20 +101,39 @@ def get_order_items(order_id):
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
-        SELECT Состав_заказа.id, Товар.наименование,
-               Состав_заказа.размер, Состав_заказа.количество,
-               Состав_заказа.цена
+        SELECT
+            Состав_заказа.id,
+            Товар.наименование,
+            Товар.категория,
+            Состав_заказа.размер,
+            Состав_заказа.количество,
+            Состав_заказа.цена
         FROM Состав_заказа
         JOIN Товар ON Состав_заказа.товар_id = Товар.id
         WHERE Состав_заказа.заказ_id = ?
+        ORDER BY Состав_заказа.id
     """, (order_id,))
     rows = cur.fetchall()
     conn.close()
     return rows
 
 
-def decrease_product_quantity(product_id, quantity):
+def get_order_total(order_id):
    
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT SUM(количество * цена)
+        FROM Состав_заказа
+        WHERE заказ_id = ?
+    """, (order_id,))
+    row = cur.fetchone()
+    conn.close()
+    return row[0] or 0.0
+
+
+def decrease_product_quantity(product_id, quantity):
+    
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -164,7 +180,7 @@ def update_product_quantity(product_id, new_quantity):
 
 
 def get_product_quantity(product_id):
-    
+  
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT количество FROM Товар WHERE id = ?", (product_id,))
@@ -174,7 +190,7 @@ def get_product_quantity(product_id):
 
 
 def get_last_order_id():
-    
+   
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT MAX(id) FROM Заказ")

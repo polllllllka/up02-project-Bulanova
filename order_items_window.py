@@ -10,14 +10,13 @@ import order_manager as om
 
 
 class OrderItemsWindow:
-    
+   
 
     def __init__(self, parent, order_id):
-        
         self.order_id = order_id
         self.window = tk.Toplevel(parent)
         self.window.title(f"Состав заказа №{order_id}")
-        self.window.geometry("700x400")
+        self.window.geometry("850x500")
         self.window.configure(bg=COLOR_MAIN_BG)
 
         self.build_ui()
@@ -34,17 +33,20 @@ class OrderItemsWindow:
                  bg=COLOR_SECONDARY_BG).pack(pady=15)
 
        
-        columns = ("name", "size", "quantity", "price", "total")
+        columns = ("name", "category", "size",
+                   "quantity", "price", "total")
         self.tree = ttk.Treeview(self.window, columns=columns,
-                                 show="headings", height=10)
+                                 show="headings", height=12)
 
         self.tree.heading("name", text="Товар")
+        self.tree.heading("category", text="Категория")
         self.tree.heading("size", text="Размер")
         self.tree.heading("quantity", text="Кол-во")
         self.tree.heading("price", text="Цена")
         self.tree.heading("total", text="Сумма")
 
-        self.tree.column("name", width=250, anchor="w")
+        self.tree.column("name", width=200, anchor="w")
+        self.tree.column("category", width=120, anchor="w")
         self.tree.column("size", width=70, anchor="center")
         self.tree.column("quantity", width=70, anchor="center")
         self.tree.column("price", width=100, anchor="e")
@@ -52,15 +54,23 @@ class OrderItemsWindow:
 
         self.tree.pack(fill="both", expand=True, padx=20, pady=20)
 
-     
+        
         self.total_label = tk.Label(self.window, text="",
                                     font=font(FONT_SIZE_NORMAL, bold=True),
+                                    fg=COLOR_ACCENT,
                                     bg=COLOR_MAIN_BG)
-        self.total_label.pack(pady=5)
+        self.total_label.pack(pady=10)
 
-        
+       
         btn_frame = tk.Frame(self.window, bg=COLOR_MAIN_BG)
         btn_frame.pack(fill="x", pady=10)
+
+        tk.Button(btn_frame, text="Обновить",
+                  command=self.load_items,
+                  bg=COLOR_ACCENT, fg="white",
+                  font=font(FONT_SIZE_NORMAL),
+                  padx=15, pady=5,
+                  cursor="hand2").pack(side="left", padx=20)
 
         tk.Button(btn_frame, text="Назад",
                   command=self.window.destroy,
@@ -76,21 +86,32 @@ class OrderItemsWindow:
 
         try:
             items = om.get_order_items(self.order_id)
-            total = 0.0
+
+            if not items:
+                messagebox.showinfo("Информация", "Заказ пуст")
+                return
 
             for item in items:
                 
-                name, size, quantity, price = item[1], item[2], item[3], item[4]
+                name = item[1]
+                category = item[2] if item[2] else "—"
+                size = item[3] if item[3] is not None else "—"
+                quantity = item[4]
+                price = item[5]
                 item_total = quantity * price
-                total += item_total
-
-                size_str = str(size) if size is not None else "—"
 
                 self.tree.insert("", tk.END,
-                                 values=(name, size_str, quantity,
-                                         f"{price:.2f}", f"{item_total:.2f}"))
+                                 values=(name, category, size,
+                                         quantity,
+                                         f"{price:.2f}",
+                                         f"{item_total:.2f}"))
 
-            self.total_label.config(text=f"Итого: {total:.2f} руб.")
+           
+            total = om.get_order_total(self.order_id)
+            self.total_label.config(
+                text=f"ИТОГО ПО ЗАКАЗУ: {total:.2f} руб."
+            )
 
         except Exception as e:
-            messagebox.showerror("Ошибка", f"Не удалось загрузить состав:\n{e}")
+            messagebox.showerror("Ошибка",
+                                 f"Не удалось загрузить состав:\n{e}")

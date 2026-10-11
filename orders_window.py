@@ -4,13 +4,13 @@ from tkinter import ttk, messagebox
 
 from styles import (
     COLOR_MAIN_BG, COLOR_SECONDARY_BG, COLOR_ACCENT,
-    FONT_SIZE_NORMAL, FONT_SIZE_HEADER, FONT_SIZE_TITLE, font
+    FONT_SIZE_NORMAL, FONT_SIZE_TITLE, font
 )
 import order_manager as om
 
 
 class OrdersWindow:
-   
+    
 
     def __init__(self, parent, current_user=None):
         self.current_user = current_user
@@ -91,4 +91,4 @@ class OrdersWindow:
         order_id = item["values"][0]
 
         from order_items_window import OrderItemsWindow
-        OrderItemsWindow(self.window, order_id)
+        OrderItemsWindow(self.window, order_id, self.current_user)

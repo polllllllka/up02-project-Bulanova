@@ -135,3 +135,4 @@ if __name__ == "__main__":
     
     print("\n3. Товары с низким остатком (≤20):")
     print_catalog_with_highlight(get_products_low_stock(20))
+

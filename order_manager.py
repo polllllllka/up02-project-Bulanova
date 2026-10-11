@@ -1,8 +1,13 @@
 
 import sqlite3
 from datetime import datetime
+import os
 
-from config import DB_PATH
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(current_dir, "databases", "db_variant_7.db")
+if not os.path.exists(DB_PATH):
+    DB_PATH = os.path.join(current_dir, "db_variant_7.db")
 
 
 def get_connection():
@@ -10,18 +15,16 @@ def get_connection():
     return sqlite3.connect(DB_PATH)
 
 
-def add_order_to_db(client, product_id, quantity):
-    
+def add_order_to_db(client, date=None):
+   
+    if date is None:
+        date = datetime.now().strftime("%Y-%m-%d")
+
     conn = get_connection()
     cur = conn.cursor()
-
-    # Текущая дата в формате YYYY-MM-DD
-    date = datetime.now().strftime("%Y-%m-%d")
-
     cur.execute(
-        "INSERT INTO Заказ (дата, клиент, товар_id, количество) "
-        "VALUES (?, ?, ?, ?)",
-        (date, client, product_id, quantity)
+        "INSERT INTO Заказ (дата, клиент) VALUES (?, ?)",
+        (date, client)
     )
     conn.commit()
     order_id = cur.lastrowid
@@ -29,8 +32,77 @@ def add_order_to_db(client, product_id, quantity):
     return order_id
 
 
-def update_product_quantity(product_id, new_quantity):
+def add_order_item(order_id, product_id, size, quantity, price):
    
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO Состав_заказа "
+        "(заказ_id, товар_id, размер, количество, цена) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (order_id, product_id, size, quantity, price)
+    )
+    conn.commit()
+    item_id = cur.lastrowid
+    conn.close()
+    return item_id
+
+
+def create_order(client, items):
+    
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+        date = datetime.now().strftime("%Y-%m-%d")
+        cur.execute(
+            "INSERT INTO Заказ (дата, клиент) VALUES (?, ?)",
+            (date, client)
+        )
+        order_id = cur.lastrowid
+
+        for product_id, size, quantity, price in items:
+            cur.execute(
+                "INSERT INTO Состав_заказа "
+                "(заказ_id, товар_id, размер, количество, цена) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (order_id, product_id, size, quantity, price)
+            )
+
+        conn.commit()
+        return order_id
+
+    except Exception as e:
+        conn.rollback()
+        print(f"Ошибка создания заказа: {e}")
+        return None
+
+    finally:
+        conn.close()
+
+
+def get_last_order_id():
+    
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT MAX(id) FROM Заказ")
+    row = cur.fetchone()
+    conn.close()
+    return row[0] if row else None
+
+
+def get_product_quantity(product_id):
+   
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT количество FROM Товар WHERE id = ?", (product_id,))
+    row = cur.fetchone()
+    conn.close()
+    return row[0] if row else 0
+
+
+def update_product_quantity(product_id, new_quantity):
+    
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
@@ -41,21 +113,18 @@ def update_product_quantity(product_id, new_quantity):
     conn.close()
 
 
-def get_last_order_id():
-
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT MAX(id) FROM Заказ")
-    row = cur.fetchone()
-    conn.close()
-    return row[0] if row else None
-
-
-def get_product_quantity(product_id):
+def get_order_items(order_id):
     
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT количество FROM Товар WHERE id = ?", (product_id,))
-    row = cur.fetchone()
+    cur.execute("""
+        SELECT Состав_заказа.id, Товар.наименование,
+               Состав_заказа.размер, Состав_заказа.количество,
+               Состав_заказа.цена
+        FROM Состав_заказа
+        JOIN Товар ON Состав_заказа.товар_id = Товар.id
+        WHERE Состав_заказа.заказ_id = ?
+    """, (order_id,))
+    rows = cur.fetchall()
     conn.close()
-    return row[0] if row else 0
+    return rows

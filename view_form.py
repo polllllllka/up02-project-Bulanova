@@ -9,9 +9,9 @@ from styles import (
 from resources import get_product_image
 from error_handler import validate_positive_int
 from order_manager import (
-    add_order_to_db,
-    update_product_quantity,
-    get_product_quantity
+    create_order,
+    get_product_quantity,
+    update_product_quantity
 )
 
 
@@ -19,7 +19,6 @@ class ViewForm:
     
 
     def __init__(self, parent, product, on_add_to_order=None):
-        
         self.product = product
         self.on_add_to_order = on_add_to_order
 
@@ -32,6 +31,7 @@ class ViewForm:
 
     def build_ui(self):
        
+        
         header = tk.Frame(self.window, bg=COLOR_SECONDARY_BG, height=60)
         header.pack(fill="x")
         header.pack_propagate(False)
@@ -40,11 +40,11 @@ class ViewForm:
                  font=font(FONT_SIZE_TITLE, bold=True),
                  bg=COLOR_SECONDARY_BG).pack(pady=15)
 
-      
+       
         main = tk.Frame(self.window, bg=COLOR_MAIN_BG)
         main.pack(fill="both", expand=True, padx=20, pady=20)
 
-        
+       
         img_frame = tk.Frame(main, bg=COLOR_MAIN_BG)
         img_frame.pack(side="left", padx=10, anchor="n")
 
@@ -65,7 +65,6 @@ class ViewForm:
         info_frame = tk.Frame(main, bg=COLOR_MAIN_BG)
         info_frame.pack(side="left", fill="both", expand=True, padx=20)
 
-        
         name = self.product.name if self.product.name else "[Без названия]"
         category = self.product.category if self.product.category else "[Без категории]"
         expiry = self.product.expiry_date if self.product.expiry_date else "[Не указан]"
@@ -81,7 +80,7 @@ class ViewForm:
         self._add_field(info_frame, "Количество", f"{qty} шт.")
         self._add_field(info_frame, "Статус", status)
 
-        
+       
         qty_input_frame = tk.Frame(self.window, bg=COLOR_MAIN_BG)
         qty_input_frame.pack(fill="x", padx=20, pady=5)
 
@@ -94,7 +93,7 @@ class ViewForm:
                              width=10, font=font(FONT_SIZE_NORMAL))
         qty_entry.pack(side="left", padx=5)
 
-
+        
         btn_frame = tk.Frame(self.window, bg=COLOR_MAIN_BG)
         btn_frame.pack(fill="x", pady=15)
 
@@ -113,7 +112,7 @@ class ViewForm:
                   cursor="hand2").pack(side="right", padx=20)
 
     def _add_field(self, parent, label, value):
-       
+        
         row = tk.Frame(parent, bg=COLOR_MAIN_BG)
         row.pack(fill="x", pady=3)
 
@@ -125,12 +124,12 @@ class ViewForm:
                  bg=COLOR_MAIN_BG, anchor="w").pack(side="left")
 
     def add_to_order(self):
-     
+        
         if not self.product:
             messagebox.showerror("Ошибка", "Товар не выбран")
             return
 
-   
+       
         qty_str = self.qty_var.get()
         ok, result = validate_positive_int(qty_str, "Количество")
         if not ok:
@@ -149,15 +148,24 @@ class ViewForm:
                 )
                 return
 
-       
-            add_order_to_db("Иванов Иван Иванович", product_id, qty)
+           
+            price = self.product.price if self.product.price is not None else 0
+            items = [(product_id, None, qty, price)]
 
+            order_id = create_order("Иванов Иван Иванович", items)
+
+            if order_id is None:
+                messagebox.showerror("Ошибка", "Не удалось создать заказ")
+                return
+
+           
             new_qty = current_qty - qty
             update_product_quantity(product_id, new_qty)
 
-            messagebox.showinfo("Успех", f"Заказ оформлен ({qty} шт.)")
+            messagebox.showinfo("Успех",
+                                f"Заказ №{order_id} оформлен ({qty} шт.)")
 
-         
+            
             if self.on_add_to_order:
                 self.on_add_to_order()
 

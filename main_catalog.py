@@ -4,8 +4,8 @@ from tkinter import ttk
 import os
 
 from styles import (
-    COLOR_SECONDARY_BG, COLOR_MAIN_BG,
-    FONT_FAMILY, FONT_SIZE_TITLE, font
+    COLOR_SECONDARY_BG, COLOR_MAIN_BG, COLOR_ACCENT,
+    FONT_FAMILY, FONT_SIZE_NORMAL, FONT_SIZE_TITLE, font
 )
 from config import APP_TITLE
 from db_products import get_all_products
@@ -43,10 +43,12 @@ class CatalogWindow:
         self.load_products()
 
     def build_ui(self):
+        
         header = tk.Frame(self.root, bg=COLOR_SECONDARY_BG, height=80)
         header.pack(fill="x")
         header.pack_propagate(False)
 
+        
         logo = load_image_proportional(PATH_LOGO, max_size=(60, 60))
         if logo:
             logo_label = tk.Label(header, image=logo, bg=COLOR_SECONDARY_BG)
@@ -56,11 +58,20 @@ class CatalogWindow:
             tk.Label(header, text="[ЛОГОТИП]",
                      bg=COLOR_SECONDARY_BG).pack(side="left", padx=15)
 
+        
         tk.Label(header, text="КАТАЛОГ ТОВАРОВ",
                  font=font(FONT_SIZE_TITLE, bold=True),
                  bg=COLOR_SECONDARY_BG).pack(expand=True)
 
        
+        tk.Button(header, text="Заказы",
+                  command=self.open_orders,
+                  bg=COLOR_ACCENT, fg="white",
+                  font=font(FONT_SIZE_NORMAL),
+                  padx=10, pady=5,
+                  cursor="hand2").pack(side="right", padx=15)
+
+        
         self.canvas = tk.Canvas(self.root, bg=COLOR_MAIN_BG, highlightthickness=0)
         scrollbar = ttk.Scrollbar(self.root, orient="vertical",
                                    command=self.canvas.yview)
@@ -75,7 +86,7 @@ class CatalogWindow:
         scrollbar.pack(side="right", fill="y")
 
     def load_products(self):
-        
+       
         products = safe_call(get_all_products) or []
         for p in products:
             safe_call(create_product_card, self.catalog_frame, p,
@@ -86,6 +97,11 @@ class CatalogWindow:
         for widget in self.catalog_frame.winfo_children():
             widget.destroy()
         self.load_products()
+
+    def open_orders(self):
+        
+        from orders_window import OrdersWindow
+        OrdersWindow(self.root)
 
     def run(self):
         self.root.mainloop()

@@ -8,6 +8,7 @@ from styles import (
 from resources import get_product_image
 
 
+
 def create_product_card(parent, product):
     
     qty = product.quantity
@@ -20,6 +21,7 @@ def create_product_card(parent, product):
     _add_text_info(card, product, bg_color, qty)
 
     return card
+
 
 
 def _get_card_color(qty):
@@ -37,14 +39,16 @@ def _add_image(card, product, bg_color):
     img_frame = tk.Frame(card, bg=bg_color)
     img_frame.pack(side="left", padx=10, pady=10)
 
+   
     image_path = ""
     if product.image:
         image_path = f"resources/{product.image}"
 
+    
     photo = get_product_image(image_path, size=(100, 100))
     if photo:
         img_label = tk.Label(img_frame, image=photo, bg=bg_color)
-        img_label.image = photo   # сохраняем ссылку!
+        img_label.image = photo   
         img_label.pack()
     else:
         tk.Label(img_frame, text="[НЕТ ФОТО]", bg=bg_color,
@@ -52,22 +56,29 @@ def _add_image(card, product, bg_color):
 
 
 def _add_text_info(card, product, bg_color, qty):
-    
+   
     text_frame = tk.Frame(card, bg=bg_color)
     text_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10)
 
-    # Обработка крайних случаев
+
     name = product.name if product.name else "[Без названия]"
+    if len(name) > 100:
+        name = name[:100] + "..."
+
     category = product.category if product.category else "[Без категории]"
     expiry = product.expiry_date if product.expiry_date else "[Не указан]"
     price = product.price if product.price is not None else 0
 
+ 
+    price_str = f"{price:,.0f}".replace(",", " ")
+
+   
     _add_label(text_frame, name,
                bg_color, bold=True, size=FONT_SIZE_HEADER)
     _add_label(text_frame, f"Категория: {category}", bg_color)
     _add_label(text_frame, f"Количество: {_indicator(qty)} ({qty} шт.)", bg_color)
     _add_label(text_frame, f"Срок годности: {expiry}", bg_color)
-    _add_label(text_frame, f"{price} руб.",
+    _add_label(text_frame, f"{price_str} руб.",
                bg_color, bold=True, size=FONT_SIZE_HEADER, align="e")
 
 

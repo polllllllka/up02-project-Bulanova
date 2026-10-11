@@ -1,6 +1,8 @@
-"""main_catalog.py - Главное окно с каталогом."""
+
 import tkinter as tk
 from tkinter import ttk
+import os
+
 from styles import (
     COLOR_SECONDARY_BG, COLOR_MAIN_BG,
     FONT_FAMILY, FONT_SIZE_TITLE, font
@@ -8,12 +10,12 @@ from styles import (
 from config import APP_TITLE
 from db_products import get_all_products
 from catalog import create_product_card
-from resources import load_image_proportional, PATH_LOGO, PATH_ICON
-import os
+from resources import load_image, load_image_proportional, PATH_LOGO, PATH_ICON
+from error_handler import safe_call
 
 
 def set_app_icon(root, icon_path):
-    """Устанавливает иконку приложения кроссплатформенно."""
+    
     try:
         if os.name == "nt":   # Windows
             if os.path.exists(icon_path):
@@ -35,34 +37,33 @@ class CatalogWindow:
         self.root.geometry("900x700")
         self.root.configure(bg=COLOR_MAIN_BG)
 
-        # Иконка
+        
         set_app_icon(self.root, PATH_ICON)
 
         self.build_ui()
         self.load_products()
 
     def build_ui(self):
-        # Шапка с логотипом и заголовком
+        
         header = tk.Frame(self.root, bg=COLOR_SECONDARY_BG, height=80)
         header.pack(fill="x")
         header.pack_propagate(False)
 
-        # Логотип слева (с сохранением пропорций)
+
         logo = load_image_proportional(PATH_LOGO, max_size=(60, 60))
         if logo:
             logo_label = tk.Label(header, image=logo, bg=COLOR_SECONDARY_BG)
-            logo_label.image = logo
+            logo_label.image = logo   
             logo_label.pack(side="left", padx=15)
         else:
             tk.Label(header, text="[ЛОГОТИП]",
                      bg=COLOR_SECONDARY_BG).pack(side="left", padx=15)
 
-        # Заголовок по центру
+   
         tk.Label(header, text="КАТАЛОГ ТОВАРОВ",
                  font=font(FONT_SIZE_TITLE, bold=True),
                  bg=COLOR_SECONDARY_BG).pack(expand=True)
 
-        # Область с прокруткой
         self.canvas = tk.Canvas(self.root, bg=COLOR_MAIN_BG,
                                 highlightthickness=0)
         scrollbar = ttk.Scrollbar(self.root, orient="vertical",
@@ -78,11 +79,13 @@ class CatalogWindow:
         scrollbar.pack(side="right", fill="y")
 
     def load_products(self):
-        products = get_all_products()
+
+        products = safe_call(get_all_products) or []
         for p in products:
-            create_product_card(self.catalog_frame, p)
+            safe_call(create_product_card, self.catalog_frame, p)
 
     def run(self):
+        
         self.root.mainloop()
 
 

@@ -6,7 +6,7 @@ from config import DB_PATH
 
 
 def get_connection():
-   
+    
     return sqlite3.connect(DB_PATH)
 
 
@@ -30,7 +30,7 @@ def add_order_to_db(client, product_id, quantity):
 
 
 def update_product_quantity(product_id, new_quantity):
-  
+   
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
@@ -42,7 +42,7 @@ def update_product_quantity(product_id, new_quantity):
 
 
 def get_last_order_id():
-    
+
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT MAX(id) FROM Заказ")
@@ -52,7 +52,7 @@ def get_last_order_id():
 
 
 def get_product_quantity(product_id):
-   
+    
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT количество FROM Товар WHERE id = ?", (product_id,))

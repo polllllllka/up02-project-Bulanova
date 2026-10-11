@@ -10,17 +10,17 @@ from styles import (
 from config import APP_TITLE
 from db_products import get_all_products
 from catalog import create_product_card
-from resources import load_image, load_image_proportional, PATH_LOGO, PATH_ICON
+from resources import load_image_proportional, PATH_LOGO, PATH_ICON
 from error_handler import safe_call
 
 
 def set_app_icon(root, icon_path):
     
     try:
-        if os.name == "nt":   # Windows
+        if os.name == "nt":
             if os.path.exists(icon_path):
                 root.iconbitmap(icon_path)
-        else:                  # Linux/Mac
+        else:
             png_path = icon_path.replace(".ico", ".png")
             icon_img = load_image_proportional(png_path, max_size=(32, 32))
             if icon_img:
@@ -37,7 +37,6 @@ class CatalogWindow:
         self.root.geometry("900x700")
         self.root.configure(bg=COLOR_MAIN_BG)
 
-        
         set_app_icon(self.root, PATH_ICON)
 
         self.build_ui()
@@ -49,21 +48,20 @@ class CatalogWindow:
         header.pack(fill="x")
         header.pack_propagate(False)
 
-
         logo = load_image_proportional(PATH_LOGO, max_size=(60, 60))
         if logo:
             logo_label = tk.Label(header, image=logo, bg=COLOR_SECONDARY_BG)
-            logo_label.image = logo   
+            logo_label.image = logo
             logo_label.pack(side="left", padx=15)
         else:
             tk.Label(header, text="[ЛОГОТИП]",
                      bg=COLOR_SECONDARY_BG).pack(side="left", padx=15)
 
-   
         tk.Label(header, text="КАТАЛОГ ТОВАРОВ",
                  font=font(FONT_SIZE_TITLE, bold=True),
                  bg=COLOR_SECONDARY_BG).pack(expand=True)
 
+        
         self.canvas = tk.Canvas(self.root, bg=COLOR_MAIN_BG,
                                 highlightthickness=0)
         scrollbar = ttk.Scrollbar(self.root, orient="vertical",
@@ -79,22 +77,21 @@ class CatalogWindow:
         scrollbar.pack(side="right", fill="y")
 
     def load_products(self):
-        
+       
         products = safe_call(get_all_products) or []
         for p in products:
             safe_call(create_product_card, self.catalog_frame, p,
                       refresh=self.refresh_catalog)
 
-    def run(self):
-        
-        self.root.mainloop()
-
     def refresh_catalog(self):
         
         for widget in self.catalog_frame.winfo_children():
             widget.destroy()
-        
         self.load_products()
+
+    def run(self):
+       
+        self.root.mainloop()
 
 
 if __name__ == "__main__":

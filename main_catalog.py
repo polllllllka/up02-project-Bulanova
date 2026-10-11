@@ -15,7 +15,7 @@ from error_handler import safe_call
 
 
 def set_app_icon(root, icon_path):
-    
+   
     try:
         if os.name == "nt":
             if os.path.exists(icon_path):
@@ -37,18 +37,23 @@ class CatalogWindow:
         self.root.geometry("900x700")
         self.root.configure(bg=COLOR_MAIN_BG)
 
+        self.current_user = None
+        self.user_label = None
+        self.header = None
+
         set_app_icon(self.root, PATH_ICON)
 
         self.build_ui()
         self.load_products()
+        self.require_auth()
 
     def build_ui(self):
-        
+       
         header = tk.Frame(self.root, bg=COLOR_SECONDARY_BG, height=80)
         header.pack(fill="x")
         header.pack_propagate(False)
 
-        
+       
         logo = load_image_proportional(PATH_LOGO, max_size=(60, 60))
         if logo:
             logo_label = tk.Label(header, image=logo, bg=COLOR_SECONDARY_BG)
@@ -61,15 +66,15 @@ class CatalogWindow:
         
         tk.Label(header, text="КАТАЛОГ ТОВАРОВ",
                  font=font(FONT_SIZE_TITLE, bold=True),
-                 bg=COLOR_SECONDARY_BG).pack(expand=True)
+                 bg=COLOR_SECONDARY_BG).pack(side="left", expand=True)
 
-       
-        tk.Button(header, text="Заказы",
-                  command=self.open_orders,
-                  bg=COLOR_ACCENT, fg="white",
-                  font=font(FONT_SIZE_NORMAL),
-                  padx=10, pady=5,
-                  cursor="hand2").pack(side="right", padx=15)
+        
+        self.user_label = tk.Label(header, text="Не авторизован",
+                                   font=font(FONT_SIZE_NORMAL),
+                                   bg=COLOR_SECONDARY_BG)
+        self.user_label.pack(side="right", padx=15)
+
+        self.header = header
 
         
         self.canvas = tk.Canvas(self.root, bg=COLOR_MAIN_BG, highlightthickness=0)
@@ -85,6 +90,38 @@ class CatalogWindow:
         self.canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
+    def require_auth(self):
+        
+        from auth import AuthWindow
+        AuthWindow(self.root, self.on_auth_success)
+
+    def on_auth_success(self, user):
+       
+        self.current_user = user
+
+        # ФИО и роль в шапке
+        fio = user[2] if user[2] else user[1]
+        role = user[3] if user[3] else "Клиент"
+        self.user_label.config(text=f"{fio} ({role})")
+
+        # Кнопки по роли
+        self.add_role_buttons(role)
+
+    def add_role_buttons(self, role):
+        
+        if role in ("Менеджер", "Администратор"):
+            tk.Button(self.header, text="Заказы",
+                      command=self.open_orders,
+                      bg=COLOR_ACCENT, fg="white",
+                      font=font(FONT_SIZE_NORMAL),
+                      padx=10, pady=5,
+                      cursor="hand2").pack(side="right", padx=5)
+
+    def open_orders(self):
+        
+        from orders_window import OrdersWindow
+        OrdersWindow(self.root, self.current_user)
+
     def load_products(self):
        
         products = safe_call(get_all_products) or []
@@ -97,11 +134,6 @@ class CatalogWindow:
         for widget in self.catalog_frame.winfo_children():
             widget.destroy()
         self.load_products()
-
-    def open_orders(self):
-        
-        from orders_window import OrdersWindow
-        OrdersWindow(self.root)
 
     def run(self):
         self.root.mainloop()

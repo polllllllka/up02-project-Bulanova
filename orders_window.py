@@ -10,10 +10,11 @@ import order_manager as om
 
 
 class OrdersWindow:
-    
+   
 
-    def __init__(self, parent):
-        
+    def __init__(self, parent, current_user=None):
+        self.current_user = current_user
+
         self.window = tk.Toplevel(parent)
         self.window.title("Список заказов")
         self.window.geometry("800x500")
@@ -23,7 +24,6 @@ class OrdersWindow:
         self.load_orders()
 
     def build_ui(self):
-        
         header = tk.Frame(self.window, bg=COLOR_SECONDARY_BG, height=60)
         header.pack(fill="x")
         header.pack_propagate(False)
@@ -32,7 +32,6 @@ class OrdersWindow:
                  font=font(FONT_SIZE_TITLE, bold=True),
                  bg=COLOR_SECONDARY_BG).pack(pady=15)
 
-        
         columns = ("id", "date", "client")
         self.tree = ttk.Treeview(self.window, columns=columns,
                                  show="headings", height=15)
@@ -46,11 +45,8 @@ class OrdersWindow:
         self.tree.column("client", width=400, anchor="w")
 
         self.tree.pack(fill="both", expand=True, padx=20, pady=20)
-
-        
         self.tree.bind("<Double-1>", self.on_order_select)
 
-        
         btn_frame = tk.Frame(self.window, bg=COLOR_MAIN_BG)
         btn_frame.pack(fill="x", pady=10)
 
@@ -76,10 +72,8 @@ class OrdersWindow:
                   cursor="hand2").pack(side="right", padx=20)
 
     def load_orders(self):
-        
         for row in self.tree.get_children():
             self.tree.delete(row)
-
         try:
             orders = om.get_all_orders()
             for order in orders:
@@ -88,7 +82,6 @@ class OrdersWindow:
             messagebox.showerror("Ошибка", f"Не удалось загрузить заказы:\n{e}")
 
     def on_order_select(self, event=None):
-       
         selected = self.tree.selection()
         if not selected:
             messagebox.showwarning("Ошибка", "Выберите заказ")

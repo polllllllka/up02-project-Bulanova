@@ -136,3 +136,15 @@ if __name__ == "__main__":
     print("\n3. Товары с низким остатком (≤20):")
     print_catalog_with_highlight(get_products_low_stock(20))
 
+
+def get_user_by_login(login):
+    
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT id, логин, фио, роль FROM Пользователь WHERE логин = ?",
+        (login,)
+    )
+    row = cur.fetchone()
+    conn.close()
+    return row

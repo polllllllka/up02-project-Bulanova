@@ -9,7 +9,7 @@ from resources import get_product_image
 
 
 
-def create_product_card(parent, product):
+def create_product_card(parent, product, refresh=None):
 
     qty = product.quantity
     bg_color = _get_card_color(qty)
@@ -21,11 +21,12 @@ def create_product_card(parent, product):
     _add_text_info(card, product, bg_color, qty)
 
 
-    card.bind("<Button-1>", lambda e: _open_view(parent, product))
+      
+    card.bind("<Button-1>", lambda e: _open_view(parent, product, refresh))
     for child in card.winfo_children():
-        child.bind("<Button-1>", lambda e: _open_view(parent, product))
+        child.bind("<Button-1>", lambda e: _open_view(parent, product, refresh))
         for sub in child.winfo_children():
-            sub.bind("<Button-1>", lambda e: _open_view(parent, product))
+            sub.bind("<Button-1>", lambda e: _open_view(parent, product, refresh))
 
     return card
 
@@ -94,7 +95,7 @@ def _add_label(parent, text, bg_color, bold=False,
              bg=bg_color, anchor=align).pack(fill="x")
 
 
-def _open_view(parent, product):
+def _open_view(parent, product, refresh=None):
 
-    from view_form import ViewForm   
-    ViewForm(parent, product)
+    from view_form import ViewForm
+    ViewForm(parent, product, on_add_to_order=refresh)

@@ -1,4 +1,8 @@
-
+from order_manager import (
+    add_order_to_db,
+    update_product_quantity,
+    get_product_quantity
+)
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -120,12 +124,52 @@ class ViewForm:
                  bg=COLOR_MAIN_BG, anchor="w").pack(side="left")
 
     def add_to_order(self):
-        
-        qty_str = self.qty_entry.get()
-        ok, result = validate_positive_int(qty_str, "Количество")
-        if not ok:
-            messagebox.showwarning("Неверное значение", result)
+      
+        if not self.product:
+            messagebox.showerror("Ошибка", "Товар не выбран")
             return
+
+        
+        from error_handler import validate_positive_int
+        qty_str = self.qty_entry.get()
+        ok, qty_result = validate_positive_int(qty_str, "Количество")
+        if not ok:
+            messagebox.showwarning("Неверное значение", qty_result)
+            return
+        qty = qty_result
+
+        try:
+            product_id = self.product.id
+            current_qty = get_product_quantity(product_id)
+
+           
+            if current_qty < qty:
+                messagebox.showwarning(
+                    "Недостаточно товара",
+                    f"Доступно только {current_qty} шт."
+                )
+                return
+
+            
+            add_order_to_db("Иванов Иван Иванович", product_id, qty)
+
+      
+            new_qty = current_qty - qty
+            update_product_quantity(product_id, new_qty)
+
+            messagebox.showinfo("Успех",
+                                f"Заказ оформлен ({qty} шт.)")
+
+       
+            if self.on_add_to_order:
+                self.on_add_to_order()
+
+      
+            self.window.destroy()
+
+        except Exception as e:
+            messagebox.showerror("Ошибка заказа",
+                                 f"Не удалось оформить:\n{e}")
 
   
         if not self.on_add_to_order:

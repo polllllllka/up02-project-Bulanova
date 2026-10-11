@@ -43,7 +43,6 @@ class CatalogWindow:
         self.load_products()
 
     def build_ui(self):
-        
         header = tk.Frame(self.root, bg=COLOR_SECONDARY_BG, height=80)
         header.pack(fill="x")
         header.pack_propagate(False)
@@ -61,9 +60,8 @@ class CatalogWindow:
                  font=font(FONT_SIZE_TITLE, bold=True),
                  bg=COLOR_SECONDARY_BG).pack(expand=True)
 
-        
-        self.canvas = tk.Canvas(self.root, bg=COLOR_MAIN_BG,
-                                highlightthickness=0)
+       
+        self.canvas = tk.Canvas(self.root, bg=COLOR_MAIN_BG, highlightthickness=0)
         scrollbar = ttk.Scrollbar(self.root, orient="vertical",
                                    command=self.canvas.yview)
         self.catalog_frame = tk.Frame(self.canvas, bg=COLOR_MAIN_BG)
@@ -77,7 +75,7 @@ class CatalogWindow:
         scrollbar.pack(side="right", fill="y")
 
     def load_products(self):
-       
+        
         products = safe_call(get_all_products) or []
         for p in products:
             safe_call(create_product_card, self.catalog_frame, p,
@@ -90,7 +88,6 @@ class CatalogWindow:
         self.load_products()
 
     def run(self):
-       
         self.root.mainloop()
 
 

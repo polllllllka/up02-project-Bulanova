@@ -3,7 +3,6 @@ import sqlite3
 from datetime import datetime
 import os
 
-
 current_dir = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(current_dir, "databases", "db_variant_7.db")
 if not os.path.exists(DB_PATH):
@@ -16,10 +15,9 @@ def get_connection():
 
 
 def add_order_to_db(client, date=None):
-   
+    
     if date is None:
         date = datetime.now().strftime("%Y-%m-%d")
-
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
@@ -33,7 +31,7 @@ def add_order_to_db(client, date=None):
 
 
 def add_order_item(order_id, product_id, size, quantity, price):
-   
+  
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
@@ -49,7 +47,7 @@ def add_order_item(order_id, product_id, size, quantity, price):
 
 
 def create_order(client, items):
-    
+  
     conn = get_connection()
     cur = conn.cursor()
 
@@ -62,11 +60,24 @@ def create_order(client, items):
         order_id = cur.lastrowid
 
         for product_id, size, quantity, price in items:
+            # Проверка наличия
+            cur.execute("SELECT количество FROM Товар WHERE id = ?", (product_id,))
+            row = cur.fetchone()
+            if not row or row[0] < quantity:
+                raise ValueError(f"Недостаточно товара id={product_id}")
+
+            # Добавляем позицию
             cur.execute(
                 "INSERT INTO Состав_заказа "
                 "(заказ_id, товар_id, размер, количество, цена) "
                 "VALUES (?, ?, ?, ?, ?)",
                 (order_id, product_id, size, quantity, price)
+            )
+
+            # Уменьшаем остаток
+            cur.execute(
+                "UPDATE Товар SET количество = количество - ? WHERE id = ?",
+                (quantity, product_id)
             )
 
         conn.commit()
@@ -81,24 +92,46 @@ def create_order(client, items):
         conn.close()
 
 
-def get_last_order_id():
+def decrease_product_quantity(product_id, quantity):
     
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT MAX(id) FROM Заказ")
-    row = cur.fetchone()
-    conn.close()
-    return row[0] if row else None
+
+    try:
+        cur.execute("SELECT количество FROM Товар WHERE id = ?", (product_id,))
+        row = cur.fetchone()
+        if not row:
+            return False
+        current = row[0]
+        if current < quantity:
+            return False
+
+        cur.execute(
+            "UPDATE Товар SET количество = количество - ? WHERE id = ?",
+            (quantity, product_id)
+        )
+        conn.commit()
+        return True
+
+    except Exception as e:
+        conn.rollback()
+        print(f"Ошибка уменьшения: {e}")
+        return False
+
+    finally:
+        conn.close()
 
 
-def get_product_quantity(product_id):
+def restore_product_quantity(product_id, quantity):
    
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT количество FROM Товар WHERE id = ?", (product_id,))
-    row = cur.fetchone()
+    cur.execute(
+        "UPDATE Товар SET количество = количество + ? WHERE id = ?",
+        (quantity, product_id)
+    )
+    conn.commit()
     conn.close()
-    return row[0] if row else 0
 
 
 def update_product_quantity(product_id, new_quantity):
@@ -113,8 +146,28 @@ def update_product_quantity(product_id, new_quantity):
     conn.close()
 
 
-def get_order_items(order_id):
+def get_product_quantity(product_id):
+  
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT количество FROM Товар WHERE id = ?", (product_id,))
+    row = cur.fetchone()
+    conn.close()
+    return row[0] if row else 0
+
+
+def get_last_order_id():
     
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT MAX(id) FROM Заказ")
+    row = cur.fetchone()
+    conn.close()
+    return row[0] if row else None
+
+
+def get_order_items(order_id):
+   
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""

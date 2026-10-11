@@ -10,9 +10,11 @@ from resources import get_product_image
 
 
 def create_product_card(parent, product):
-    
     qty = product.quantity
     bg_color = _get_card_color(qty)
+
+    
+    
 
     card = tk.Frame(parent, bg=bg_color, bd=1, relief="solid")
     card.pack(fill="x", padx=10, pady=5)
